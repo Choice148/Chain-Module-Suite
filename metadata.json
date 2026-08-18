@@ -1,0 +1,6 @@
+{
+  "name": "Chain Module - Web3 Diagnostic Suite",
+  "description": "Advanced multichain debugging interface for wallet sync, transaction troubleshooting, smart contract rectification, on-chain validation, and protocol diagnostics with a modern dark mode UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
