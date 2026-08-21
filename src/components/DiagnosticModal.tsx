@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { DiagnosticLog, FeatureModule, NetworkChainId, WalletState } from '../types';
 import { SUPPORTED_CHAINS } from '../data/chainsData';
+import { sendNonSensitiveTicketViaEmailJS } from '../services/emailService';
+import { Mail } from 'lucide-react';
 
 interface DiagnosticModalProps {
   module: FeatureModule | null;
@@ -48,6 +50,8 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
   const [rectificationHash, setRectificationHash] = useState<string>('');
   const [copiedHash, setCopiedHash] = useState(false);
   const [pendingScanAfterConnect, setPendingScanAfterConnect] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState<string | null>(null);
 
   // Initialize input with connected wallet or default placeholder when modal opens
   useEffect(() => {
@@ -180,6 +184,23 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleSendEmailJSReport = async () => {
+    setIsSendingEmail(true);
+    setEmailFeedback(null);
+
+    const result = await sendNonSensitiveTicketViaEmailJS({
+      network: currentChain.name,
+      issueCategory: module.title,
+      message: `Diagnostic Audit Complete for module: ${module.title}. Detected ${detectedIssues.length} issues. Status: ${status}.`,
+      publicAddress: wallet.address || inputValue || undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    setIsSendingEmail(false);
+    setEmailFeedback(result.message);
+    setTimeout(() => setEmailFeedback(null), 5000);
   };
 
   const copyHash = () => {
@@ -423,6 +444,25 @@ export const DiagnosticModal: React.FC<DiagnosticModalProps> = ({
                     <Download className="w-3.5 h-3.5" />
                     <span>Export Audit</span>
                   </button>
+
+                  <button
+                    onClick={handleSendEmailJSReport}
+                    disabled={isSendingEmail}
+                    className="px-4 py-3 rounded bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-white text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isSendingEmail ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Mail className="w-3.5 h-3.5" />
+                    )}
+                    <span>Send via EmailJS</span>
+                  </button>
+                </div>
+              )}
+
+              {emailFeedback && (
+                <div className="p-2.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-blue-300 text-xs font-mono">
+                  {emailFeedback}
                 </div>
               )}
 
