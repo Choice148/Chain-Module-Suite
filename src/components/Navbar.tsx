@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'infrastructure' | 'protocol' | 'security'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'tools' | 'modules' | 'protocol'>('tools');
 
   const currentChain = SUPPORTED_CHAINS.find(c => c.id === selectedChain) || SUPPORTED_CHAINS[0];
 
@@ -61,18 +61,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  const handleNavTab = (tab: 'dashboard' | 'infrastructure' | 'protocol' | 'security') => {
+  const handleNavTab = (tab: 'tools' | 'modules' | 'protocol') => {
     setActiveTab(tab);
-    if (tab === 'dashboard') {
+    if (tab === 'tools') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (tab === 'infrastructure') {
+    } else if (tab === 'modules') {
       const el = document.getElementById('diagnostic-modules');
       el?.scrollIntoView({ behavior: 'smooth' });
     } else if (tab === 'protocol') {
       const el = document.getElementById('protocols-section');
       el?.scrollIntoView({ behavior: 'smooth' });
-    } else if (tab === 'security') {
-      onQuickDiagnostic('security-audit');
     }
   };
 
@@ -81,8 +79,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo Brand matching Professional Polish archetype */}
-          <div className="flex items-center gap-6">
+          {/* Left: Logo Brand */}
+          <div className="flex items-center">
             <a href="#" className="flex items-center gap-3 group">
               <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-base shadow-[0_0_15px_rgba(37,99,235,0.4)] group-hover:scale-105 transition-transform">
                 C
@@ -96,85 +94,45 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
             </a>
-
-            {/* Desktop Navigation Links */}
-            <div className="hidden lg:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-white/60 ml-4">
-              <button
-                onClick={() => handleNavTab('dashboard')}
-                className={`transition-all py-1 ${
-                  activeTab === 'dashboard'
-                    ? 'text-white border-b-2 border-blue-500 font-bold'
-                    : 'hover:text-white'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => handleNavTab('infrastructure')}
-                className={`transition-all py-1 ${
-                  activeTab === 'infrastructure'
-                    ? 'text-white border-b-2 border-blue-500 font-bold'
-                    : 'hover:text-white'
-                }`}
-              >
-                Infrastructure
-              </button>
-              <button
-                onClick={() => handleNavTab('protocol')}
-                className={`transition-all py-1 ${
-                  activeTab === 'protocol'
-                    ? 'text-white border-b-2 border-blue-500 font-bold'
-                    : 'hover:text-white'
-                }`}
-              >
-                Protocol
-              </button>
-              <button
-                onClick={() => handleNavTab('security')}
-                className={`transition-all py-1 ${
-                  activeTab === 'security'
-                    ? 'text-white border-b-2 border-blue-500 font-bold'
-                    : 'hover:text-white'
-                }`}
-              >
-                Security
-              </button>
-            </div>
           </div>
 
-          {/* Center Search / Action Shortcuts */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Centralized Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-white/60">
             <button
-              id="nav-search-btn"
-              onClick={onOpenCommandPalette}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono text-white/70 hover:text-white bg-[#111111] hover:bg-[#181818] border border-white/10 hover:border-blue-500/50 rounded-lg transition-all"
+              onClick={() => handleNavTab('tools')}
+              className={`transition-all py-1 cursor-pointer ${
+                activeTab === 'tools'
+                  ? 'text-white border-b-2 border-blue-500 font-bold'
+                  : 'hover:text-white'
+              }`}
             >
-              <Search className="w-3.5 h-3.5 text-blue-500" />
-              <span>Cmd+K</span>
+              Tools
             </button>
-
             <button
-              id="nav-faucet-btn"
-              onClick={onOpenFaucet}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-white/70 hover:text-white bg-[#111111] hover:bg-[#181818] border border-white/10 hover:border-blue-500/50 rounded-lg transition-all"
+              onClick={() => handleNavTab('modules')}
+              className={`transition-all py-1 cursor-pointer ${
+                activeTab === 'modules'
+                  ? 'text-white border-b-2 border-blue-500 font-bold'
+                  : 'hover:text-white'
+              }`}
             >
-              <Droplets className="w-3.5 h-3.5 text-blue-500" />
-              <span>Faucet</span>
+              Modules
+            </button>
+            <button
+              onClick={() => handleNavTab('protocol')}
+              className={`transition-all py-1 cursor-pointer ${
+                activeTab === 'protocol'
+                  ? 'text-white border-b-2 border-blue-500 font-bold'
+                  : 'hover:text-white'
+              }`}
+            >
+              Protocol
             </button>
           </div>
 
-          {/* Right Section: Node Status + Network Selector + Connect Button */}
+          {/* Right Section: Network Selector + Connect Button */}
           <div className="flex items-center gap-4 sm:gap-6">
             
-            {/* Node Status Operational Widget from Design HTML */}
-            <div className="hidden sm:block text-right">
-              <div className="text-[10px] text-white/40 uppercase tracking-widest font-mono">Node Status</div>
-              <div className="text-xs font-mono text-emerald-400 flex items-center justify-end gap-1.5 font-medium">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>OPERATIONAL</span>
-              </div>
-            </div>
-
             {/* Chain Selector */}
             <div className="relative">
               <button
@@ -320,24 +278,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-white/10 space-y-2 animate-in fade-in duration-200">
-            <div className="grid grid-cols-2 gap-2 pb-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  handleNavTab('dashboard');
+                  handleNavTab('tools');
                 }}
                 className="px-3 py-2 rounded-lg bg-[#111111] text-xs font-semibold text-white/80"
               >
-                Dashboard
+                Tools
               </button>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  handleNavTab('infrastructure');
+                  handleNavTab('modules');
                 }}
                 className="px-3 py-2 rounded-lg bg-[#111111] text-xs font-semibold text-white/80"
               >
-                Infrastructure
+                Modules
               </button>
               <button
                 onClick={() => {
@@ -348,41 +306,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 Protocol
               </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleNavTab('security');
-                }}
-                className="px-3 py-2 rounded-lg bg-[#111111] text-xs font-semibold text-white/80"
-              >
-                Security
-              </button>
             </div>
-
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenCommandPalette();
-              }}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#111111] text-xs font-mono text-white/80"
-            >
-              <div className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-blue-500" />
-                <span>Search Diagnostics &amp; Protocols</span>
-              </div>
-              <span className="text-[10px] text-white/40">⌘K</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenFaucet();
-              }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#111111] text-xs font-mono text-white/80"
-            >
-              <Droplets className="w-4 h-4 text-blue-500" />
-              <span>Testnet Faucet Dispenser</span>
-            </button>
           </div>
         )}
 

