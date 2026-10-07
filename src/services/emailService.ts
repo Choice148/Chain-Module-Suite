@@ -30,14 +30,7 @@ export async function sendNonSensitiveTicketViaEmailJS(
     template_params: templateParams,
   };
 
-  // Add this temporarily
-  console.log('ENV CHECK:', {
-    serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
-    templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-    publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-  });
-
-  // Dev-only, redacted log — nothing leaks in production builds.
+    // Dev-only, redacted log — nothing leaks in production builds.
   if (import.meta.env.DEV) {
     console.log('[EmailJS] Dispatching', {
       service_id: serviceId,
